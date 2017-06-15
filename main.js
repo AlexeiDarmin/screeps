@@ -8,8 +8,13 @@ module.exports.loop = function () {
 
   constructExtensions()
 
-  if (isStorageFull) reassignHarvesters()
+  // if (isStorageFull) reassignHarvesters()
 
+  runRolesOnCreeps()
+}
+
+
+function runRolesOnCreeps() {
   for (let name in Game.creeps) {
     let creep = Game.creeps[name];
     if (creep.memory.role == 'harvester') {
@@ -25,29 +30,24 @@ module.exports.loop = function () {
 }
 
 function basicCreepFactory() {
-  let creepMade = false
-  let harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester')
+  const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester')
+  
   if (harvesters.length < 2) {
     addBasicCreep('harvester')
-    creepMade = true
+    return
   }
 
-  if (!creepMade) {
-    let upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader')
-    if (upgraders.length < 2) {
-      addBasicCreep('upgrader')
-      creepMade = true
-    }
-    if (!creepMade) {
-      let builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder')
-      if (builders.length < 2) {
-        addBasicCreep('builder')
-        creepMade = true
-      }
-    }
+  const upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader')
+  if (upgraders.length < 2) {
+    addBasicCreep('upgrader')
+    return
   }
-
-
+  
+  const builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder')
+  if (builders.length < 2) {
+    addBasicCreep('builder')
+    return
+  }
 }
 
 function addBasicCreep(creepType) {
