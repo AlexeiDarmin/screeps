@@ -55,12 +55,9 @@ function creepFactory() {
   const sourcesCount = Game.spawns['Spawn1'].room.find(FIND_SOURCES).length
 
   let killed = false
-  console.log(creepCount, sourcesCount * 3)
   if (creepCount == sourcesCount * 3) {
-    console.log('maxed creeps')
     for (let name in creeps) {
       let creep = creeps[name]
-      console.log(bodySizeAvailable, creep.body.length)
       if (bodySizeAvailable > creep.body.length) {
         if (killed == false) {
           creep.suicide()
@@ -73,23 +70,19 @@ function creepFactory() {
   clearDeadCreepsFromMemory()
 
   const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester')
-  console.log(harvesters.length, sourcesCount)
   if (harvesters.length < sourcesCount) {
-    const id = harvesters.length
     addBasicCreep('harvester')
     return
   }
 
   const upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader')
   if (upgraders.length < sourcesCount) {
-    const id = upgraders.length
     addBasicCreep('upgrader')
     return
   }
 
   const builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder')
   if (builders.length < sourcesCount) {
-    const id = builders.length
     addBasicCreep('builder')
     return
   }
@@ -104,7 +97,6 @@ function addBasicCreep(creepType) {
 
     let name = creepType + id
     made = Game.spawns['Spawn1'].createCreep(createCreepBody(), name, { role: creepType })
-    console.log('creep made status: ', made)
     if (made == OK) return
     id = id + 1
     count = count + 1
@@ -121,19 +113,30 @@ function createCreepBody() {
   let parts = [MOVE, CARRY, WORK]
 
   let moveCount = 1
+  let workCount = 1
+  let carryCount = 1
   let price = 200
   console.log('createCreepBody', maxCost, price, available)
   let stopper = 0
   while (maxCost - price >= 50 && stopper < 10) {
     stopper = stopper + 1
-    if (maxCost - price >= 100 && Math.floor(parts.length / 2) === moveCount) {
+    console.log('work/carry:', workCount, carryCount)
+    if (Math.floor((parts.length) / 2) > moveCount) {
+      if (maxCost - price >= 50) {
+        parts.push(MOVE)
+        price = price + 50
+        moveCount = moveCount + 1
+      }
+    } else if (workCount == carryCount && maxCost - price >= 100) {
       parts.push(WORK)
       price = price + 100
+      workCount = workCount + 1
     } else if (maxCost - price >= 50) {
-      parts.push(MOVE)
+      parts.push(CARRY)
       price = price + 50
-      moveCount = moveCount + 1
+      carryCount = carryCount + 1
     }
+
   }
   console.log(parts)
   return parts
