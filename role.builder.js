@@ -29,6 +29,10 @@ var roleBuilder = {
     else {
       var sources = creep.room.find(FIND_SOURCES);
       if (creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
+        const enemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 6);
+        if (enemies.length > 0) return
+
+
         creep.moveTo(sources[0], { visualizePathStyle: { stroke: '#ffaa00' } });
       }
     }
@@ -40,7 +44,7 @@ function createRoadConstructionSite() {
 
   for (let name in harvesters) {
     const creep = harvesters[name]
-    Game.rooms.sim.createConstructionSite(creep.pos, STRUCTURE_ROAD)
+    // Game.rooms.sim.createConstructionSite(creep.pos, STRUCTURE_ROAD)
   }
 }
 
@@ -50,11 +54,15 @@ function createExtensionConstructionSite() {
   let x = spawnPos.x
   let y = spawnPos.y
 
-  while (true) {
-    x = x + 1
-    y = y + 1
-    if (OK == Game.rooms.sim.createConstructionSite(x, y, STRUCTURE_EXTENSION)) {
-      return true
+  const rooms = Game.rooms
+  for (let name in rooms) {
+    while (true) {
+      x = x - 1
+      y = y - 1
+
+      if (OK == rooms[name].createConstructionSite(x, y, STRUCTURE_EXTENSION)) {
+        return true
+      }
     }
   }
 }
@@ -72,6 +80,7 @@ function countStructureOfType(type) {
 
 // room level is 0 to 8
 function extensionsCap() {
+  return 2
   const roomLevel = Game.rooms.sim.controller.level
   console.log('room level: ', roomLevel)
   if (roomLevel <= 1) return 0

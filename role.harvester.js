@@ -4,8 +4,13 @@ var roleHarvester = {
   run: function (creep) {
     if (creep.carry.energy < creep.carryCapacity) {
       var sources = creep.room.find(FIND_SOURCES);
-      if (creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(sources[0], { visualizePathStyle: { stroke: '#ffaa00' } });
+      const sourceId = creep.name.slice(-1)
+      if (creep.harvest(sources[sourceId]) == ERR_NOT_IN_RANGE) {
+        const enemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 6);
+        if (enemies.length > 0) return
+
+
+        creep.moveTo(sources[sourceId], { visualizePathStyle: { stroke: '#ffaa00' } });
       }
     }
     else {
