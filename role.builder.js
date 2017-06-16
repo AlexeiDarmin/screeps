@@ -19,11 +19,13 @@ var roleBuilder = {
           creep.moveTo(targets[0], { visualizePathStyle: { stroke: '#ffffff' } });
         }
       } else {
-        if (countStructureOfType(STRUCTURE_EXTENSION) < extensionsCap()) {
-          createExtensionConstructionSite()
+        // if (countStructureOfType(STRUCTURE_EXTENSION) < extensionsCap()){
+        if (countStructureOfType(STRUCTURE_EXTENSION) < 5) {
+          // createExtensionConstructionSite()
         } else {
-          createRoadConstructionSite()
+          // createRoadConstructionSite()
         }
+        createRoadConstructionSite()
       }
     }
     else {
@@ -44,7 +46,10 @@ function createRoadConstructionSite() {
 
   for (let name in harvesters) {
     const creep = harvesters[name]
-    // Game.rooms.sim.createConstructionSite(creep.pos, STRUCTURE_ROAD)
+    const rooms = Game.rooms
+    for (let name in rooms) {
+      Game.rooms[name].createConstructionSite(creep.pos, STRUCTURE_ROAD)
+    }
   }
 }
 
@@ -81,7 +86,7 @@ function countStructureOfType(type) {
 // room level is 0 to 8
 function extensionsCap() {
   return 2
-  const roomLevel = Game.rooms.sim.controller.level
+  const roomLevel = Game.spawns['Spawn1'].controller.level
   console.log('room level: ', roomLevel)
   if (roomLevel <= 1) return 0
   if (roomLevel == 2) return 5

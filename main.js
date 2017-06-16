@@ -39,6 +39,12 @@ function creepFactory() {
   - 1 of each role per resource
   */
 
+  let maxCost = Game.spawns['Spawn1'].room.energyCapacityAvailable
+  let available = Game.spawns['Spawn1'].room.energyAvailable
+  console.log(available + '/' + maxCost)
+
+  if (maxCost > available) return -1
+
   const creeps = Game.creeps
   let creepCount = 0
   for (let name in creeps) {
@@ -93,11 +99,15 @@ function addBasicCreep(creepType) {
   console.log('Add creep ')
   let id = 0
   let made = false
-  while (true) {
+  let count = 0
+  while (count < 5) {
+
     let name = creepType + id
-    made = OK == Game.spawns['Spawn1'].createCreep(createCreepBody(), name, { role: creepType })
+    made = Game.spawns['Spawn1'].createCreep(createCreepBody(), name, { role: creepType })
+    console.log('creep made status: ', made)
     if (made == OK) return
     id = id + 1
+    count = count + 1
   }
 }
 
@@ -113,13 +123,16 @@ function createCreepBody() {
   let moveCount = 1
   let price = 200
   console.log('createCreepBody', maxCost, price, available)
-  while (maxCost - price >= 50) {
+  let stopper = 0
+  while (maxCost - price >= 50 && stopper < 10) {
+    stopper = stopper + 1
     if (maxCost - price >= 100 && Math.floor(parts.length / 2) === moveCount) {
       parts.push(WORK)
       price = price + 100
     } else if (maxCost - price >= 50) {
       parts.push(MOVE)
       price = price + 50
+      moveCount = moveCount + 1
     }
   }
   console.log(parts)
