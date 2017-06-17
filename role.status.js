@@ -23,8 +23,10 @@ var roleStatus = {
           const enemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 6);
           if (enemies.length > 0) return
 
-
-          creep.moveTo(sources[tempSourceId], { visualizePathStyle: { stroke: '#ffaa00' } });
+          let targetSource
+          if (creep.memory.role == 'upgrader') targetSource = sourceNearController(true)
+          else targetSource = sourceNearController(false)
+          creep.moveTo(targetSource, { visualizePathStyle: { stroke: '#ffaa00' } });
         }
       }
     } else if (status == 'unloading') {
@@ -38,7 +40,7 @@ var roleStatus = {
           }
         });
         if (targets.length == 0) {
-          creep.memory.status = 'upgrading'
+          creep.memory.status = 'building'
         }
         if (targets.length > 0) {
           if (creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -90,21 +92,66 @@ function createRoadConstructionSite() {
   }
 }
 
+// return source that is nearest to controller if isNearest is true, otherwise return the further one.
+function sourceNearController(isNearest) {
+  const myRoom = Game.spawns['Spawn1'].room
+  const sources = myRoom.find(FIND_SOURCES)
+  const roomController = myRoom.controller
+
+  //   Game.spawns['Spawn1'].room.controller.pos.findClosestByRange(FIND_SOURCES)
+  // find the 'not nearest' source to the controller to build as a base
+  let controllerSource = roomController.pos.findClosestByRange(FIND_SOURCES)
+
+  for (let name in sources) {
+    if (isNearest == false && sources[name] != controllerSource) return sources[name]
+    else if (isNearest == true && sources[name] == controllerSource) return sources[name]
+  }
+}
 function createExtensionConstructionSite() {
-  const spawnPos = Game.spawns['Spawn1'].pos
 
-  let x = spawnPos.x
-  let y = spawnPos.y
+  const source = sourceNearController(false)
 
-  const rooms = Game.rooms
-  for (let name in rooms) {
-    while (true) {
-      x = x - 1
-      y = y - 1
+  let delta = 4
+  let slide = 1
+  let cycled = true
 
-      if (OK == rooms[name].createConstructionSite(x, y, STRUCTURE_EXTENSION)) {
-        return true
+  let x = source.pos.x
+  let y = source.pos.y
+
+  let startX = x
+  let startY = y
+
+  const thisRoom = Game.spawns['Spawn1'].room
+  // Iterates in a circle around the source structure trying to place an extension.
+  // if no placement is possible then the radius is increased and the process restarts
+  let counter = 0
+  while (counter < 10) {
+    counter = counter + 1
+    // select direction of rotation if switch has reach delta
+    if (delta != 1 && slide == delta) {
+      if (cycled == true) {
+        //invert direction
+        cycled = false
+        x = startY
+        y = startX
+        slide = -1 * delta
+      } else if (cycled == false) {
+        //reset to default, increase radius
+        delta = delta + 2
+        slide = -1 * delta
+        x = startX
+        y = startY
+        cycled = true
       }
+    }
+    else slide = slide + 2
+
+    x = x + slide
+    y = y + delta - slide
+
+    console.log('build at:', x, y)
+    if (OK == thisRoom.createConstructionSite(x, y, STRUCTURE_EXTENSION)) {
+      return true
     }
   }
 }
@@ -122,8 +169,7 @@ function countStructureOfType(type) {
 
 // room level is 0 to 8
 function extensionsCap() {
-  return 5
-  const roomLevel = Game.spawns['Spawn1'].controller.level
+  const roomLevel = Game.spawns['Spawn1'].room.controller.level
   if (roomLevel <= 1) return 0
   if (roomLevel == 2) return 5
   if (roomLevel == 3) return 10
